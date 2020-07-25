@@ -330,7 +330,7 @@ class EM3D_Port(EM3D_Bdry):
         except:
             raise ValueError("Cannot evaluate amplitude/phase to float number")
         '''
-    def preprocess_params(self, engine):
+    def do_preprocess_params(self, engine):
         ### find normal (outward) vector...
         mesh = engine.get_emesh(mm = self) ### 
         
@@ -467,8 +467,34 @@ class EM3D_Port(EM3D_Bdry):
         Ht = C_jwHt(3, 0.0, self, real = False, eps=eps, mur=mur)
         for p in vv:
             dprint1(p.__repr__() + ' : ' + Ht.EvalValue(p).__repr__())
-                  
-                
+
+    def preprocess_params(self, engine):
+            self.a = 0
+            self.b = 0
+            self.a_vec = 0
+            self.b_vec = 0
+            self.c = 0
+            self.ctr = 0
+            ### find normal (outward) vector...
+            mesh = engine.get_emesh(mm = self) ###
+
+            fespace = engine.fespaces[self.get_root_phys().dep_vars[0]]
+
+            nbe = mesh.GetNBE()
+            ibe = np.array([i for i in range(nbe)
+                             if mesh.GetBdrElement(i).GetAttribute() ==  
+                                self._sel_index[0]])
+            if len(ibe) > 0:
+                self.do_preprocess_params(engine)
+            else:
+                from mpi4py import MPI
+                self.a =  MPI.COMM_WORLD.bcast(self.a, root=MPI.COMM_WORLD.rank)
+                self.b =  MPI.COMM_WORLD.bcast(self.b, root=MPI.COMM_WORLD.rank)
+                self.a_vec =  MPI.COMM_WORLD.bcast(self.a_vec, root=MPI.COMM_WORLD.rank)
+                self.b_vec =  MPI.COMM_WORLD.bcast(self.b_vec, root=MPI.COMM_WORLD.rank)
+                self.c =  MPI.COMM_WORLD.bcast(self.c, root=MPI.COMM_WORLD.rank)
+                self.ctr =  MPI.COMM_WORLD.bcast(self.ctr, root=MPI.COMM_WORLD.rank)
+
     def get_coeff_cls(self):
         if self.mode == 'TEM':
             return C_Et_TEM, C_jwHt_TEM
