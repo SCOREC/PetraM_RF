@@ -206,6 +206,7 @@ class H_Ephi_phi(mfem.PyCoefficient):
 
 
 class EM2Da_Port(EM2Da_Bdry):
+    extra_diagnostic_print = True
     vt = Vtable(data)
 
     def __init__(self, mode='TE', mn='0,1', inc_amp='1',
@@ -246,10 +247,6 @@ class EM2Da_Port(EM2Da_Bdry):
         self.mode = v[1]
         self.mn = [int(x) for x in v[2].split(',')]
         self.vt.import_panel_value(self, v[3:])
-
-    def get_exter_NDoF(self):
-        return 1
-        # (in future) must be number of modes on this port...
 
     def update_param(self):
         self.update_inc_amp_phase()
@@ -393,7 +390,7 @@ class EM2Da_Port(EM2Da_Bdry):
         else:
             return False
 
-    def get_exter_NDoF(self):
+    def get_extra_NDoF(self):
         return 1
 
     # def get_probe(self):
@@ -461,7 +458,7 @@ class EM2Da_Port(EM2Da_Bdry):
             from mfem.common.chypre import LF2PyVec, PyVec2PyMat, Array2PyVec, IdentityPyMat
 
             v1 = LF2PyVec(lf1, lf1i)
-            v1 *= -1
+            #v1 *= -1
 
             lf2 = engine.new_lf(fes)
             Et = Ephi(self, real=True, eps=eps, mur=mur)
@@ -493,7 +490,7 @@ class EM2Da_Port(EM2Da_Bdry):
             v1 = PyVec2PyMat(v1)
             v2 = PyVec2PyMat(v2.transpose())
             t4 = Array2PyVec(t4)
-            t3 = IdentityPyMat(1)
+            t3 = IdentityPyMat(1, diag=-1)
 
             v2 = v2.transpose()
 

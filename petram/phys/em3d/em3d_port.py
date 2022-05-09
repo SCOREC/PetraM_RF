@@ -58,6 +58,7 @@ data = (('inc_amp', VtableElement('inc_amp', type='complex',
 
 
 class EM3D_Port(EM3D_Bdry):
+    extra_diagnostic_print = True
     vt = Vtable(data)
 
     def __init__(self, mode='TE', mn='0,1', inc_amp='1',
@@ -108,10 +109,6 @@ class EM3D_Port(EM3D_Bdry):
         self.mn = [int(x) for x in v[2].split(',')]
         self.vt.import_panel_value(self, v[3:])
 
-    def get_exter_NDoF(self):
-        return 1
-        # (in future) must be number of modes on this port...
-
     def update_param(self):
         self.vt.preprocess_params(self)
         inc_amp, inc_phase, eps, mur = self.vt.make_value_or_expression(self)
@@ -136,7 +133,7 @@ class EM3D_Port(EM3D_Bdry):
         ibe = np.array([i for i in range(nbe)
                         if mesh.GetBdrElement(i).GetAttribute() ==
                         self._sel_index[0]])
-        dprint1("idb", ibe)
+
         el = mesh.GetBdrElement(ibe[0])
         Tr = fespace.GetBdrElementTransformation(ibe[0])
         rules = mfem.IntegrationRules()
@@ -354,7 +351,7 @@ class EM3D_Port(EM3D_Bdry):
             return False
         return True
 
-    def get_exter_NDoF(self):
+    def get_extra_NDoF(self):
         return 1
 
     def is_extra_RHSonly(self):
@@ -408,7 +405,7 @@ class EM3D_Port(EM3D_Bdry):
         #
         #
         v1 = LF2PyVec(lf1, lf1i)
-        v1 *= -1
+        #v1 *= -1
         v2 = LF2PyVec(lf2, None, horizontal=True)
         #x  = LF2PyVec(x, None)
         #
@@ -422,7 +419,7 @@ class EM3D_Port(EM3D_Bdry):
         v2 = PyVec2PyMat(v2.transpose())
 
         t4 = Array2PyVec(t4)
-        t3 = IdentityPyMat(1)
+        t3 = IdentityPyMat(1, diag=-1)
 
         v2 = v2.transpose()
 
